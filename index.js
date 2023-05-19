@@ -3,6 +3,7 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 5000;
 require('dotenv').config();
+const jwt = require('jsonwebtoken');
 
 // MiddleWare
 app.use(cors());
@@ -39,9 +40,16 @@ async function run() {
         res.send(addNewToy);
     })
     // Get Toys
-    app.get('/toys', async(req, res)=>{
-        const result = await toyCollection.find().toArray();
+    app.get('/toys', async (req, res) => {
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit);
+        const skip = page * limit;
+        const result = await toyCollection.find().skip(skip).limit(limit).toArray();
         res.send(result);
+    })
+    app.get('/totalToys', async (req, res) => {
+        const result = await toyCollection.estimatedDocumentCount();
+        res.send({ totalToys: result });
     })
 
 
