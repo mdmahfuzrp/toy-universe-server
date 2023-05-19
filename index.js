@@ -11,7 +11,7 @@ app.use(express.json());
 // ----------------------------
 
 // MongoDB Code
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DATA_USER}:${process.env.DATA_PASS}@cluster0.jlpngjm.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -32,25 +32,75 @@ async function run() {
 
     // All Code For Client Side
     // -------------------------
-    
-    // Add Toys
-    app.post('/toys', async(req, res)=>{
-        const toy = req.body;
-        const addNewToy = await toyCollection.insertOne(toy);
-        res.send(addNewToy);
-    })
     // Get Toys
     app.get('/toys', async (req, res) => {
-        const page = parseInt(req.query.page);
-        const limit = parseInt(req.query.limit);
-        const skip = page * limit;
-        const result = await toyCollection.find().skip(skip).limit(limit).toArray();
-        res.send(result);
+      const page = parseInt(req.query.page);
+      const limit = parseInt(req.query.limit);
+      const skip = page * limit;
+      const result = await toyCollection.find().skip(skip).limit(limit).toArray();
+      res.send(result);
     })
+
+    // Find Specific Data Using Email
+    app.get('/toys/email', async (req, res) => {
+      let query = {};
+      if (req.query.email) {
+        query = { sellerEmail: req.query.email }
+      }
+      const result = await toyCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    // Find Single Toy
+    app.get('/toys/:id', async(req, res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await toyCollection.findOne(query);
+      res.send(result);
+  })
+
     app.get('/totalToys', async (req, res) => {
-        const result = await toyCollection.estimatedDocumentCount();
-        res.send({ totalToys: result });
+      const result = await toyCollection.estimatedDocumentCount();
+      res.send({ totalToys: result });
     })
+
+    // Add Toys
+    app.post('/toys', async (req, res) => {
+      const toy = req.body;
+      const addNewToy = await toyCollection.insertOne(toy);
+      res.send(addNewToy);
+    })
+
+    // Update Toy
+    app.put('/toys/:id', async (req, res)=>{
+      const toyId = req.params.id;
+      const updatedToy = req.body;
+      const filter = {_id: new ObjectId(toyId)};
+      const options = {upsert: true};
+      const toy = {
+        $set: {
+          toyName: updatedToy.toyName,
+          category: updatedToy.category,
+          description: updatedToy.description,
+          toyPhoto: updatedToy.toyPhoto,
+          price: updatedToy.price,
+          rating: updatedToy.rating,
+          quantity: updatedToy.quantity,
+          sellerName: updatedToy.sellerName,
+          sellerEmail: updatedToy.sellerEmail
+        }
+      }
+      const result = await toyCollection.updateOne(filter, toy, options);
+      res.send(result);
+    })
+
+    // Delete Toy
+    app.delete('/toys/:id', async(req, res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await toyCollection.deleteOne(query);
+      res.send(result);
+  })
 
 
     // Send a ping to confirm a successful connection
@@ -66,9 +116,9 @@ run().catch(console.dir);
 
 
 // Start
-app.get('/', (req, res)=>{
-    res.send('Marvel Universe Running')
+app.get('/', (req, res) => {
+  res.send('Marvel Universe Running')
 });
-app.listen(port, (req, res)=>{
-    console.log(`Marvel Universe Server Running on Port: ${port}`);
+app.listen(port, (req, res) => {
+  console.log(`Marvel Universe Server Running on Port: ${port}`);
 });
