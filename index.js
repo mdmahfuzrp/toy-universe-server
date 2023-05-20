@@ -29,9 +29,17 @@ async function run() {
     await client.connect();
 
     const toyCollection = client.db('marvelUniverse').collection('toyCollection');
+    const galleryToyCollection = client.db('marvelUniverse').collection('galleryToyCollection');
 
     // All Code For Client Side
     // -------------------------
+
+    // Get Gallery Toys Data
+    app.get('/toyGallery', async (req, res) => {
+      const result = await galleryToyCollection.find().toArray();
+      res.send(result);
+    })
+
     // Get Toys
     app.get('/toys', async (req, res) => {
       const page = parseInt(req.query.page);
@@ -43,21 +51,25 @@ async function run() {
 
     // Find Specific Data Using Email
     app.get('/toys/email', async (req, res) => {
+      console.log(req.query.sort);
+      console.log(req.query.order);
       let query = {};
       if (req.query.email) {
         query = { sellerEmail: req.query.email }
       }
-      const result = await toyCollection.find(query).toArray();
+      const sortField = req.query.sort || 'price';
+      const sortOrder = parseInt(req.query.order) || 1;
+      const result = await toyCollection.find(query).sort({ [sortField]: sortOrder }).toArray();
       res.send(result);
     })
 
     // Find Single Toy
-    app.get('/toys/:id', async(req, res)=>{
+    app.get('/toys/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await toyCollection.findOne(query);
       res.send(result);
-  })
+    })
 
     app.get('/totalToys', async (req, res) => {
       const result = await toyCollection.estimatedDocumentCount();
@@ -72,11 +84,11 @@ async function run() {
     })
 
     // Update Toy
-    app.put('/toys/:id', async (req, res)=>{
+    app.put('/toys/:id', async (req, res) => {
       const toyId = req.params.id;
       const updatedToy = req.body;
-      const filter = {_id: new ObjectId(toyId)};
-      const options = {upsert: true};
+      const filter = { _id: new ObjectId(toyId) };
+      const options = { upsert: true };
       const toy = {
         $set: {
           toyName: updatedToy.toyName,
@@ -95,12 +107,12 @@ async function run() {
     })
 
     // Delete Toy
-    app.delete('/toys/:id', async(req, res)=>{
+    app.delete('/toys/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await toyCollection.deleteOne(query);
       res.send(result);
-  })
+    })
 
 
     // Send a ping to confirm a successful connection
