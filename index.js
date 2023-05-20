@@ -71,6 +71,19 @@ async function run() {
       res.send(result);
     })
 
+    // Find By Category Data
+    app.get('/toys/category/:category', async (req, res) => {
+      const category = req.params.category;
+      console.log(category);
+      let query = {};
+      if (category) {
+        query = { category: category }
+      }
+      const result = await toyCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    // Total Toys Count
     app.get('/totalToys', async (req, res) => {
       const result = await toyCollection.estimatedDocumentCount();
       res.send({ totalToys: result });
