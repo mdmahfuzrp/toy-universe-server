@@ -40,14 +40,26 @@ async function run() {
       res.send(result);
     })
 
-    // Get Toys
+    // // Get Toys
+    // app.get('/toys', async (req, res) => {
+    //   const page = parseInt(req.query.page);
+    //   const limit = parseInt(req.query.limit);
+    //   const skip = page * limit;
+    //   const result = await toyCollection.find().skip(skip).limit(limit).toArray();
+    //   res.send(result);
+    // })
+
     app.get('/toys', async (req, res) => {
       const page = parseInt(req.query.page);
       const limit = parseInt(req.query.limit);
       const skip = page * limit;
-      const result = await toyCollection.find().skip(skip).limit(limit).toArray();
+      const searchName = req.query.name; // Get the toy name from the query parameters
+      const query = searchName ? { toyName: { $regex: searchName, $options: 'i' } } : {}; // Create the query object
+      
+      const result = await toyCollection.find(query).skip(skip).limit(limit).toArray();
       res.send(result);
-    })
+    });
+    
 
     // Find Specific Data Using Email
     app.get('/toys/email', async (req, res) => {
@@ -63,6 +75,7 @@ async function run() {
       res.send(result);
     })
 
+
     // Find Single Toy
     app.get('/toys/:id', async (req, res) => {
       const id = req.params.id;
@@ -70,6 +83,7 @@ async function run() {
       const result = await toyCollection.findOne(query);
       res.send(result);
     })
+
 
     // Find By Category Data
     app.get('/toys/category/:category', async (req, res) => {
