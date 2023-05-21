@@ -40,15 +40,6 @@ async function run() {
       res.send(result);
     })
 
-    // // Get Toys
-    // app.get('/toys', async (req, res) => {
-    //   const page = parseInt(req.query.page);
-    //   const limit = parseInt(req.query.limit);
-    //   const skip = page * limit;
-    //   const result = await toyCollection.find().skip(skip).limit(limit).toArray();
-    //   res.send(result);
-    // })
-
     app.get('/toys', async (req, res) => {
       const page = parseInt(req.query.page);
       const limit = parseInt(req.query.limit);
